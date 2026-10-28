@@ -69,6 +69,13 @@ class InfDpsData extends Dto
     public ?EmitenteDPS $tipoEmitente = null;
 
     /**
+     * Indicador da finalidade da emissão de NFS-e.
+     * 0 - NFS-e regular
+     */
+    #[MapFrom('finNFSe')]
+    public ?string $finalidadeNfse = null;
+
+    /**
      * Código do município emissor da DPS (IBGE).
      */
     #[MapFrom('cLocEmi')]

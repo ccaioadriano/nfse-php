@@ -50,6 +50,7 @@ class DpsXmlBuilder
         $this->appendElement($parent, 'nDPS', $data->numeroDps);
         $this->appendElement($parent, 'dCompet', $data->dataCompetencia);
         $this->appendElement($parent, 'tpEmit', $data->tipoEmitente);
+        $this->appendElement($parent, 'finNFSe', $data->finalidadeNfse);
         $this->appendElement($parent, 'cMotivoEmisTI', $data->motivoEmissaoTomadorIntermediario);
         $this->appendElement($parent, 'chNFSeRej', $data->chaveNfseRejeitada);
         $this->appendElement($parent, 'cLocEmi', $data->codigoLocalEmissao);
