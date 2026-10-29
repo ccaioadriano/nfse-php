@@ -26,7 +26,7 @@ class SefinClient implements SefinNacionalInterface
 
     public function __construct(private NfseContext $context)
     {
-        $resolver = new SefinEndpointResolver();
+        $resolver = new SefinEndpointResolver;
         $this->baseUrl = $resolver->resolve($this->context);
         $this->httpClient = $this->createHttpClient();
     }
@@ -52,11 +52,23 @@ class SefinClient implements SefinNacionalInterface
 
     private function createHttpClient(): Client
     {
+        if ($this->context->nssCertificateSelector !== null) {
+            // O Guzzle exige que a opção `cert` seja um arquivo existente; o seletor NSS não é, então segue cru para o cURL.
+            $certificateOptions = ['curl' => [
+                CURLOPT_SSLCERTTYPE => 'ENG',
+                CURLOPT_SSLCERT => $this->context->nssCertificateSelector,
+            ]];
+        } else {
+            $certificateOptions = [
+                RequestOptions::CERT => [$this->resolveCertificatePath(), $this->context->certificatePassword],
+                RequestOptions::CERT_TYPE => 'P12',
+            ];
+        }
+
         return new Client([
-            'base_uri' => rtrim($this->baseUrl, '/') . '/',
+            'base_uri' => rtrim($this->baseUrl, '/').'/',
             'handler' => Retry::stack(),
-            RequestOptions::CERT => [$this->resolveCertificatePath(), $this->context->certificatePassword],
-            RequestOptions::CERT_TYPE => 'P12',
+            ...$certificateOptions,
             RequestOptions::FORCE_IP_RESOLVE => 'v4',
             RequestOptions::CONNECT_TIMEOUT => 30,
             RequestOptions::TIMEOUT => 60,
@@ -205,8 +217,8 @@ class SefinClient implements SefinNacionalInterface
     }
 
     /**
-     * @param  \Exception|GuzzleException  $e
      * @return mixed
+     *
      * @throws NfseApiException
      */
     private function handleException(\Exception|GuzzleException $e)

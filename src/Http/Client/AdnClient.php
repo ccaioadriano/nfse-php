@@ -60,11 +60,23 @@ class AdnClient implements AdnDanfseInterface
             ? self::URL_PRODUCTION
             : self::URL_HOMOLOGATION;
 
+        if ($this->context->nssCertificateSelector !== null) {
+            // O Guzzle exige que a opção `cert` seja um arquivo existente; o seletor NSS não é, então segue cru para o cURL.
+            $certificateOptions = ['curl' => [
+                CURLOPT_SSLCERTTYPE => 'ENG',
+                CURLOPT_SSLCERT => $this->context->nssCertificateSelector,
+            ]];
+        } else {
+            $certificateOptions = [
+                RequestOptions::CERT => [$this->resolveCertificatePath(), $this->context->certificatePassword],
+                RequestOptions::CERT_TYPE => 'P12',
+            ];
+        }
+
         return new Client([
             'base_uri' => $baseUrl,
             'handler' => Retry::stack(),
-            RequestOptions::CERT => [$this->resolveCertificatePath(), $this->context->certificatePassword],
-            RequestOptions::CERT_TYPE => 'P12',
+            ...$certificateOptions,
             RequestOptions::FORCE_IP_RESOLVE => 'v4',
             RequestOptions::CONNECT_TIMEOUT => 30,
             RequestOptions::TIMEOUT => 60,
@@ -296,8 +308,8 @@ class AdnClient implements AdnDanfseInterface
     }
 
     /**
-     * @param  \GuzzleHttp\Exception\RequestException|\Exception  $e
      * @return mixed
+     *
      * @throws NfseApiException
      */
     private function handleException(\GuzzleHttp\Exception\RequestException|\Exception $e)

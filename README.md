@@ -46,6 +46,17 @@ $context = new NfseContext(
 $nfse = new Nfse($context);
 ```
 
+Para autenticar as conexões HTTP com um certificado armazenado em um banco NSS, informe o seletor que o cURL deve usar:
+
+```php
+$context = new NfseContext(
+    ambiente: TipoAmbiente::Producao,
+    nssCertificateSelector: 'NSS Certificate DB:Nome do certificado'
+);
+```
+
+O SDK configura esse seletor como certificado `ENG`; o suporte depende do backend TLS e da configuração do cURL instalados no ambiente. A assinatura XML de DPS e eventos ainda requer um certificado PFX, pois o assinador atual não acessa chaves privadas do NSS. Para esses fluxos, informe também `certificatePath` ou `certificateContent` e `certificatePassword`. O certificado e seu banco NSS permanecem sob responsabilidade da aplicação.
+
 ### 🏢 ContribuinteService
 
 Focado nas necessidades de empresas que emitem notas.

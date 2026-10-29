@@ -48,6 +48,20 @@ class ContribuinteServiceTest extends TestCase
         $adnProperty->setValue($this->service, $this->adnClientMock);
     }
 
+    public function test_signing_with_nss_only_throws_clear_exception(): void
+    {
+        $service = new ContribuinteService(new NfseContext(
+            ambiente: TipoAmbiente::Homologacao,
+            nssCertificateSelector: 'NSS Certificate DB:Test Certificate'
+        ));
+        $method = (new ReflectionClass($service))->getMethod('makeCertificate');
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('XML signing requires a PFX certificate');
+
+        $method->invoke($service);
+    }
+
     public function test_emitir_nfse_success()
     {
         $idDps = IdGenerator::generateDpsId('12345678000199', '3550308', '1', '1');
