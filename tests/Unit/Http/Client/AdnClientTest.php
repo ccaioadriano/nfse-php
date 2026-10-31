@@ -108,7 +108,7 @@ class AdnClientTest extends TestCase
 
         $this->assertEquals($pdfContent, $response);
         $this->assertEquals(
-            'https://164.152.60.237/nota/nacional/danfse/CHAVE123/pdf',
+            'https://cidadaoonline.catanduva.sp.gov.br/nota/nacional/danfse/CHAVE123/pdf',
             (string) $this->mock->getLastRequest()->getUri()
         );
     }

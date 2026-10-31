@@ -52,12 +52,17 @@ class SefinClient implements SefinNacionalInterface
 
     private function createHttpClient(): Client
     {
+        $curlOptions = [
+            // Endpoints municipais publicados por IP: o nome do certificado é fixado
+            // no IP original para que a verificação de host funcione.
+            CURLOPT_RESOLVE => SefinEndpointResolver::pinnedHosts(),
+        ];
+
         if ($this->context->nssCertificateSelector !== null) {
             // O Guzzle exige que a opção `cert` seja um arquivo existente; o seletor NSS não é, então segue cru para o cURL.
-            $certificateOptions = ['curl' => [
-                CURLOPT_SSLCERTTYPE => 'ENG',
-                CURLOPT_SSLCERT => $this->context->nssCertificateSelector,
-            ]];
+            $curlOptions[CURLOPT_SSLCERTTYPE] = 'ENG';
+            $curlOptions[CURLOPT_SSLCERT] = $this->context->nssCertificateSelector;
+            $certificateOptions = [];
         } else {
             $certificateOptions = [
                 RequestOptions::CERT => [$this->resolveCertificatePath(), $this->context->certificatePassword],
@@ -69,11 +74,13 @@ class SefinClient implements SefinNacionalInterface
             'base_uri' => rtrim($this->baseUrl, '/').'/',
             'handler' => Retry::stack(),
             ...$certificateOptions,
+            'curl' => $curlOptions,
             RequestOptions::FORCE_IP_RESOLVE => 'v4',
-            RequestOptions::CONNECT_TIMEOUT => 30,
+            // Com o Retry (3 tentativas), um host inacessível segura a requisição
+            // por até 3x o connect timeout; 10s basta para o handshake.
+            RequestOptions::CONNECT_TIMEOUT => 10,
             RequestOptions::TIMEOUT => 60,
             RequestOptions::VERSION => '1.1',
-            RequestOptions::VERIFY => false,
             RequestOptions::HEADERS => [
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json',

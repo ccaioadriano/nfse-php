@@ -39,7 +39,7 @@ it('resolves Catanduva production endpoint', function () {
 
     $resolver = new SefinEndpointResolver();
     expect($resolver->resolve($context))
-        ->toBe('https://164.152.60.237/nota/nacional');
+        ->toBe('https://cidadaoonline.catanduva.sp.gov.br/nota/nacional');
 });
 
 it('resolves Catanduva homologation endpoint', function () {
@@ -87,7 +87,7 @@ it('resolves danfse url on the municipality endpoint', function () {
 
     $resolver = new SefinEndpointResolver();
     expect($resolver->resolveDanfse($context, 'CHAVE123'))
-        ->toBe('https://164.152.60.237/nota/nacional/danfse/CHAVE123/pdf');
+        ->toBe('https://cidadaoonline.catanduva.sp.gov.br/nota/nacional/danfse/CHAVE123/pdf');
 });
 
 it('resolves null danfse url when municipio has no mapped endpoint', function () {
@@ -102,4 +102,18 @@ it('resolves null danfse url when municipio has no mapped endpoint', function ()
 
     $context->codigoMunicipio = '3550308';
     expect($resolver->resolveDanfse($context, 'CHAVE123'))->toBeNull();
+});
+it('pins the Catanduva hostname to its original IP for TLS host verification', function () {
+    expect(SefinEndpointResolver::pinnedHosts())
+        ->toBe(['cidadaoonline.catanduva.sp.gov.br:443:164.152.60.237']);
+
+    $context = new NfseContext(
+        ambiente: TipoAmbiente::Producao,
+        certificatePath: '/tmp/cert.pfx',
+        certificatePassword: '123456',
+        codigoMunicipio: '3511102'
+    );
+
+    $host = parse_url((new SefinEndpointResolver())->resolve($context), PHP_URL_HOST);
+    expect(SefinEndpointResolver::pinnedHosts()[0])->toStartWith($host.':443:');
 });

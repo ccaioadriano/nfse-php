@@ -50,8 +50,8 @@ class DpsXmlBuilder
         $this->appendElement($parent, 'nDPS', $data->numeroDps);
         $this->appendElement($parent, 'dCompet', $data->dataCompetencia);
         $this->appendElement($parent, 'tpEmit', $data->tipoEmitente);
-        $this->appendElement($parent, 'finNFSe', $data->finalidadeNfse);
         $this->appendElement($parent, 'cMotivoEmisTI', $data->motivoEmissaoTomadorIntermediario);
+        $this->appendElement($parent, 'finNFSe', $data->finalidadeNfse);
         $this->appendElement($parent, 'chNFSeRej', $data->chaveNfseRejeitada);
         $this->appendElement($parent, 'cLocEmi', $data->codigoLocalEmissao);
 
@@ -91,7 +91,9 @@ class DpsXmlBuilder
         }
 
         if ($data->servico) {
-            $this->buildServico($parent, $data->servico);
+            // finNFSe é obrigatório no leiaute da NT 009 e não existe no anterior,
+            // então indica qual ordem de campos usar em cServ.
+            $this->buildServico($parent, $data->servico, $data->finalidadeNfse !== null);
         }
 
         if ($data->valores) {
@@ -190,7 +192,7 @@ class DpsXmlBuilder
         $parent->appendChild($end);
     }
 
-    private function buildServico(DOMElement $parent, ServicoData $data): void
+    private function buildServico(DOMElement $parent, ServicoData $data, bool $leiauteNt009 = false): void
     {
         $serv = $this->dom->createElement('serv');
 
@@ -208,9 +210,15 @@ class DpsXmlBuilder
             $cServ = $this->dom->createElement('cServ');
             $this->appendElement($cServ, 'cTribNac', $data->codigoServico->codigoTributacaoNacional);
             $this->appendElement($cServ, 'cTribMun', $data->codigoServico->codigoTributacaoMunicipal);
-            $this->appendElement($cServ, 'xDescServ', $data->codigoServico->descricaoServico);
+            // A NT 009 moveu xDescServ para depois de cNBS/cIntContrib.
+            if (! $leiauteNt009) {
+                $this->appendElement($cServ, 'xDescServ', $data->codigoServico->descricaoServico);
+            }
             $this->appendElement($cServ, 'cNBS', $data->codigoServico->codigoNbs);
             $this->appendElement($cServ, 'cIntContrib', $data->codigoServico->codigoInternoContribuinte);
+            if ($leiauteNt009) {
+                $this->appendElement($cServ, 'xDescServ', $data->codigoServico->descricaoServico);
+            }
             $serv->appendChild($cServ);
         }
 
@@ -219,7 +227,14 @@ class DpsXmlBuilder
             $this->appendElement($comExt, 'mdPrestacao', $data->comercioExterior->modoPrestacao);
             $this->appendElement($comExt, 'vincPrest', $data->comercioExterior->vinculoPrestacao);
             $this->appendElement($comExt, 'tpMoeda', $data->comercioExterior->tipoMoeda);
-            $this->appendElement($comExt, 'vServMoeda', $data->comercioExterior->valorServicoMoeda);
+            // TSDec15V2 exige duas casas quando há parte decimal (99.9 é rejeitado, 99.90 não)
+            $this->appendElement(
+                $comExt,
+                'vServMoeda',
+                $data->comercioExterior->valorServicoMoeda !== null
+                    ? number_format($data->comercioExterior->valorServicoMoeda, 2, '.', '')
+                    : null
+            );
             $this->appendElement($comExt, 'mecAFComexP', $data->comercioExterior->mecanismoApoioComexPrestador);
             $this->appendElement($comExt, 'mecAFComexT', $data->comercioExterior->mecanismoApoioComexTomador);
             $this->appendElement($comExt, 'movTempBens', $data->comercioExterior->movimentacaoTemporariaBens);

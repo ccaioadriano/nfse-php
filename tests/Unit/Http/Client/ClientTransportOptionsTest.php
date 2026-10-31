@@ -22,12 +22,12 @@ it('configures TLS and timeouts through Guzzle request options, not raw cURL opt
 
     $options = $mock->getLastOptions();
 
-    expect($options)->not->toHaveKey('curl')
+    expect(array_diff_key($options['curl'] ?? [], [CURLOPT_RESOLVE => true]))->toBeEmpty()
         ->and($options['cert'])->toBe(['fake/path.pfx', 'password'])
         ->and($options['cert_type'])->toBe('P12')
         ->and($options['force_ip_resolve'])->toBe('v4')
-        ->and($options['connect_timeout'])->toBe(30)
+        ->and($options['connect_timeout'])->toBe(10)
         ->and($options['timeout'])->toBe(60)
-        ->and($options['verify'])->toBeFalse()
+        ->and($options['verify'])->toBeTrue()
         ->and($mock->getLastRequest()->getProtocolVersion())->toBe('1.1');
 })->with([SefinClient::class, AdnClient::class, CncClient::class]);
