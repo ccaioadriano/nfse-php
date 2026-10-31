@@ -227,7 +227,14 @@ class DpsXmlBuilder
             $this->appendElement($comExt, 'mdPrestacao', $data->comercioExterior->modoPrestacao);
             $this->appendElement($comExt, 'vincPrest', $data->comercioExterior->vinculoPrestacao);
             $this->appendElement($comExt, 'tpMoeda', $data->comercioExterior->tipoMoeda);
-            $this->appendElement($comExt, 'vServMoeda', $data->comercioExterior->valorServicoMoeda);
+            // TSDec15V2 exige duas casas quando há parte decimal (99.9 é rejeitado, 99.90 não)
+            $this->appendElement(
+                $comExt,
+                'vServMoeda',
+                $data->comercioExterior->valorServicoMoeda !== null
+                    ? number_format($data->comercioExterior->valorServicoMoeda, 2, '.', '')
+                    : null
+            );
             $this->appendElement($comExt, 'mecAFComexP', $data->comercioExterior->mecanismoApoioComexPrestador);
             $this->appendElement($comExt, 'mecAFComexT', $data->comercioExterior->mecanismoApoioComexTomador);
             $this->appendElement($comExt, 'movTempBens', $data->comercioExterior->movimentacaoTemporariaBens);
