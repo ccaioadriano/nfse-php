@@ -54,7 +54,9 @@ class SefinClient implements SefinNacionalInterface
     {
         $curlOptions = [
             CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
-            CURLOPT_CONNECTTIMEOUT => 30,
+            // Com o Retry (3 tentativas), um host inacessível segura a requisição
+            // por até 3x o connect timeout; 10s basta para o handshake.
+            CURLOPT_CONNECTTIMEOUT => 10,
             CURLOPT_TIMEOUT => 60,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             // Endpoints municipais publicados por IP: o nome do certificado é fixado
