@@ -57,8 +57,9 @@ class SefinClient implements SefinNacionalInterface
             CURLOPT_CONNECTTIMEOUT => 30,
             CURLOPT_TIMEOUT => 60,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_SSL_VERIFYHOST => 0,
-            CURLOPT_SSL_VERIFYPEER => 0,
+            // Endpoints municipais publicados por IP: o nome do certificado é fixado
+            // no IP original para que a verificação de host funcione.
+            CURLOPT_RESOLVE => SefinEndpointResolver::pinnedHosts(),
         ];
 
         if ($this->context->nssCertificateSelector !== null) {

@@ -56,8 +56,6 @@ class CncClient
             CURLOPT_CONNECTTIMEOUT => 30,
             CURLOPT_TIMEOUT => 60,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_SSL_VERIFYHOST => 0,
-            CURLOPT_SSL_VERIFYPEER => 0,
         ];
 
         if ($this->context->nssCertificateSelector !== null) {
